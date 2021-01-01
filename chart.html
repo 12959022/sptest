@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chart</title>
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js" integrity="sha512-hZf9Qhp3rlDJBvAKvmiG+goaaKRZA6LKUO35oK6EsM0/kjPK32Yw7URqrq3Q+Nvbbt8Usss+IekL7CRn83dYmw==" crossorigin="anonymous"></script> -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.0-beta.7/chart.js" integrity="sha512-A7BgARBKhOC/Ohh/MLEmmz2d8Qk8p3T1agn8eGOPMWjw+vbHq7yKLzarSaZx50HXERioFjfVCePWbIbxa5Ln2g==" crossorigin="anonymous"></script> -->
+        <script src="chartjs.js"></script>
+    </head>
+    <body>
+        <div id="graphContainer" width="300" height="300">
+            <canvas id="myChart" width="300" height="300"></canvas>
+        </div>
+        <label for="spokes">Number of spokes:</label>
+        <select id="spokes" name="spokes" onchange="spokesChange()">
+            <option value="16">16</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="32">32</option>
+        </select>
+        <br>
+        <label for="rotation">Rotation:</label>
+        <input id="rotation" type="number" min="0" step="10" max="360" value="0">
+        <br>
+        <button id="update">Update Data</button>
+        <script>
+
+            function createChart(spokes=24) {
+                window.ctx = document.getElementById('myChart').getContext('2d');
+                var data = [];
+                for(var i = 0; i < spokes; i++) {
+                    data.push(1);
+                }
+                var data2 = [];
+                for(var i = 0; i < spokes; i++) {
+                    data2.push(2);
+                }
+                
+                var labels = [];
+                for(var i = 0; i < spokes; i++) {
+                    labels.push("Spoke " + i);
+                }
+                var backGround1 = [];
+                for(var i = 0; i < spokes; i++) {
+                    const displacement = Math.abs((spokes/2-i)/(spokes/2))-0.5;
+                    // console.log(displacement);
+                    backGround1.push(rgbaString(displacement));
+                }
+                var borderWidth = [];
+                for(var i = 0; i < spokes; i++) {
+                    const height = (Math.abs((spokes/2-i)/(spokes/2))-0.5)*50;
+                    borderWidth.push(height);
+                }
+
+                var borderColor = [];
+                for(var i = 0; i < spokes; i++) {
+                    const height = Math.abs((spokes/2-i)/(spokes/2))-0.5;
+                    borderColor.push(rgbaStringHeight(height))*50;
+                }
+
+
+                console.log(data);
+                console.log(backGround1);
+                window.myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Displacement',
+                            data: data,
+                            backgroundColor: backGround1,
+                            borderColor: borderColor,
+                            borderWidth: borderWidth,
+                            // borderDashOffset: borderWidth,
+                            borderStyle:'dash',//has no effect
+                            // borderAlign: 'inner',
+                            
+                        }, 
+                        // {
+                        //     label: 'Displacement',
+                        //     data: data2,
+                        //     type: 'doughnut',
+                        //     backgroundColor: [
+                        //         'rgba(255, 99, 132, 0.2)',
+                        //         'rgba(54, 162, 235, 0.2)',
+                        //         // 'rgba(255, 206, 86, 0.2)',
+                        //         // 'rgba(75, 192, 192, 0.2)',
+                        //         // 'rgba(153, 102, 255, 0.2)',
+                        //         // 'rgba(255, 159, 64, 0.2)'
+                        //     ],
+                        //     // borderColor: [
+                        //     //     'rgba(255, 99, 132, 1)',
+                        //     //     'rgba(54, 162, 235, 1)',
+                        //     //     'rgba(255, 206, 86, 1)',
+                        //     //     'rgba(75, 192, 192, 1)',
+                        //     //     'rgba(153, 102, 255, 1)',
+                        //     //     'rgba(255, 159, 64, 1)'
+                        //     // ],
+                        //     borderWidth: [
+                                
+                        //     ]
+                            
+                        // }
+                    ]
+                    },
+                    options: {
+                        rotation: 0,
+                        legend: {
+                            display: false
+                        },
+                        cutoutPercentage: 70,
+                        // tooltips: {
+                        //     callbacks: {
+                        //     label: function(tooltipItem) {
+                        //         return tooltipItem.yLabel;
+                        // }
+                        // scale: {
+                        //     display: false
+                        // }
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                });
+                
+            }
+
+            function addData(chart, label, data) {
+                // chart.data.labels.push(label);
+                chart.data.datasets.forEach((dataset) => {
+                    dataset.data.push(data);
+                });
+                chart.update();
+            }
+
+
+            function updateData(chart) {
+                // chart.data.labels.push(label);
+                chart.data.datasets[0].data = [2,2,2]
+                chart.update();
+            }
+
+            function removeData(chart) {
+                chart.data.labels.pop();
+                chart.data.datasets.forEach((dataset) => {
+                    dataset.data.pop();
+                });
+                chart.update();
+            }
+
+            var spokesCounter = document.getElementById('spokes')
+
+            spokesCounter.onchange = function() {
+                // console.log("Changed spokes");
+                myChart.destroy();
+                createChart(this.value);
+            }
+
+            function rgbaString(displacement=0) {
+                var r = 50;
+                var g = 50;
+                var b = 50;
+                if(displacement > 0) {
+                    r = r + displacement * 200;
+                } else {
+                    b = b + displacement * 200;
+                }
+                var a = 0.1 + Math.abs(displacement);
+                return rgba = `rgb(${r}, ${g}, ${b}, ${a})`;
+            }
+
+            function rgbaStringHeight(height=0) {
+                var r = 10;
+                var g = 10;
+                var b = 10;
+                // if(displacement > 0) {
+                //     r = r + displacement * 200;
+                // } else {
+                //     b = b + displacement * 200;
+                // }
+                var a = 0.1 + Math.abs(height);
+                return rgba = `rgb(${r}, ${g}, ${b}, ${a})`;
+            }
+
+            document.getElementById('rotation').onchange = function() {
+                console.log(this.value/180 * Math.PI)
+                myChart.options = {
+                    rotation: (this.value/180 * Math.PI),
+                    cutoutPercentage: 70,
+                    legend: {
+                        display: false
+                    },
+                }
+                myChart.update();
+            }
+
+            document.getElementById('update').onclick = function() {
+                console.log('update');
+                updateData(myChart);
+            }
+
+            
+
+            createChart(16);
+            console.log(myChart);
+            console.log(Chart);
+
+            function drawSegmentValues(myPieChart)
+            {
+                console.log(myPieChart);
+                for(var i=0; i<myPieChart.data.datasets[0].data.length; i++) 
+                {
+                    // Default properties for text (size is scaled)
+                    ctx.fillStyle="white";
+                    var textSize = myPieChart.width/10;
+                    ctx.font= textSize+"px Verdana";
+
+                    // Get needed variables
+                    var value = myPieChart.data.datasets[0].data[i].value;
+                    var startAngle = myPieChart.data.datasets[0].data[i].startAngle;
+                    var endAngle = myPieChart.data.datasets[0].data[i].endAngle;
+                    var middleAngle = startAngle + ((endAngle - startAngle)/2);
+
+                    // Compute text location
+                    var posX = (100/2) * Math.cos(middleAngle) + 200;
+                    var posY = (100/2) * Math.sin(middleAngle) + 200;
+
+                    // Text offside to middle of text
+                    var w_offset = ctx.measureText(value).width/2;
+                    var h_offset = textSize/4;
+
+                    ctx.fillText(value, posX - w_offset, posY + h_offset);
+                }
+            }
+            drawSegmentValues(myChart);
+    
+
+        </script>
+    </body>
+</html>
+
